@@ -1,1 +1,27 @@
 
+rm(list=ls(all=T))
+polyneigh <- readOGR(dsn= ".",
+                     layer = "LayerName")
+
+data.pts <- read.csv("CSVFILE")
+
+#Joining polygon data with CSV data
+polyneigh@data <- left_join(polyneigh@data, data.pts, by=c("Name" = "Name"))
+
+#Setting the projections
+polyneigh <- spTransform(polyneigh,CRS("+init=epsg:4326") )
+
+#Defining the pop data
+popdata <- paste0("<strong>Name: </strong>",
+                  polyneigh$Name,
+                  "<br><strong>Crime Rate: <strong>",
+                  polyneigh$CrimeRate)
+
+#Creating the map object
+map <- leaflet(polyneigh) %>%
+  addProviderTiles("OpenStreetMap.Mapnik") %>%
+  addPolygons(color = "#1717A1", weight = 1, smoothFactor = 0.5,
+              opacity = 1.0, fillOpacity = 0.5, popup = popdata)
+
+#Creating the HTML file
+saveWidget(map, 'mapleaf.html', selfcontained = FALSE)
